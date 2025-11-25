@@ -1,4 +1,3 @@
-javascript
 // ==================== КОНСТРУКТОР САЙТА ====================
 function toggleConstructor() {
     const editButtons = document.getElementById('editButtons');
@@ -341,30 +340,6 @@ function editProducts() {
     `;
 }
 
-// ==================== СОХРАНЕНИЕ ДИЗАЙНА ====================
-function saveDesign() {
-    localStorage.setItem('siteSettings', JSON.stringify(siteSettings));
-    localStorage.setItem('categoriesData', JSON.stringify(categoriesData));
-    showNotification('💾 Дизайн сохранен!');
-}
-
-// ==================== ГЛОБАЛЬНЫЕ ФУНКЦИИ ====================
-window.toggleConstructor = toggleConstructor;
-window.showLoginPanel = showLoginPanel;
-window.login = login;
-window.logout = logout;
-window.closePanel = closePanel;
-window.editBackground = editBackground;
-window.toggleBackgroundOptions = toggleBackgroundOptions;
-window.saveBackground = saveBackground;
-window.editHeader = editHeader;
-window.saveHeader = saveHeader;
-window.editCategories = editCategories;
-window.showAddCategoryForm = showAddCategoryForm;
-window.addCategory = addCategory;
-window.editProducts = editProducts;
-window.saveDesign = saveDesign;
-// ==================== РЕДАКТИРОВАНИЕ ТОВАРОВ (ПРОДОЛЖЕНИЕ) ====================
 function showAddProductForm() {
     document.getElementById('productsPanelContent').innerHTML = `
         <h3>➕ Добавление товара</h3>
@@ -1035,7 +1010,28 @@ function deleteCategory(index) {
     }
 }
 
-// ==================== ГЛОБАЛЬНЫЕ ФУНКЦИИ (ПРОДОЛЖЕНИЕ) ====================
+// ==================== СОХРАНЕНИЕ ДИЗАЙНА ====================
+function saveDesign() {
+    localStorage.setItem('siteSettings', JSON.stringify(siteSettings));
+    localStorage.setItem('categoriesData', JSON.stringify(categoriesData));
+    showNotification('💾 Дизайн сохранен!');
+}
+
+// ==================== ГЛОБАЛЬНЫЕ ФУНКЦИИ ====================
+window.toggleConstructor = toggleConstructor;
+window.showLoginPanel = showLoginPanel;
+window.login = login;
+window.logout = logout;
+window.closePanel = closePanel;
+window.editBackground = editBackground;
+window.toggleBackgroundOptions = toggleBackgroundOptions;
+window.saveBackground = saveBackground;
+window.editHeader = editHeader;
+window.saveHeader = saveHeader;
+window.editCategories = editCategories;
+window.showAddCategoryForm = showAddCategoryForm;
+window.addCategory = addCategory;
+window.editProducts = editProducts;
 window.showAddProductForm = showAddProductForm;
 window.addProduct = addProduct;
 window.editProduct = editProduct;
@@ -1055,3 +1051,4 @@ window.processWhatsAppImport = processWhatsAppImport;
 window.editCategory = editCategory;
 window.saveCategory = saveCategory;
 window.deleteCategory = deleteCategory;
+window.saveDesign = saveDesign;
