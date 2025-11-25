@@ -1,6 +1,4 @@
 
-📄 8. package.json
-
 ```json
 {
   "name": "magazin-dlya-svoih",
@@ -31,3 +29,4 @@
   },
   "homepage": "https://your-username.github.io/magazin-dlya-svoih"
 }
+
