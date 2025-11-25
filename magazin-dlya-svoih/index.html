@@ -1,0 +1,167 @@
+html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Магазин "Для своих" - Главная</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="icon" href="assets/images/favicon.ico">
+</head>
+<body>
+    <!-- Конструктор сайта -->
+    <div class="constructor-toolbar" id="constructorToolbar">
+        <div class="constructor-toggle" onclick="toggleConstructor()">
+            <i class="fas fa-palette"></i>
+        </div>
+        <div id="editButtons" style="display: none;">
+            <button class="edit-btn" onclick="editBackground()"><i class="fas fa-paint-roller"></i> Фон сайта</button>
+            <button class="edit-btn" onclick="editHeader()"><i class="fas fa-heading"></i> Шапка</button>
+            <button class="edit-btn" onclick="editCategories()"><i class="fas fa-tags"></i> Категории</button>
+            <button class="edit-btn" onclick="editProducts()"><i class="fas fa-box"></i> Товары</button>
+            <button class="edit-btn" onclick="editOrders()"><i class="fas fa-shopping-cart"></i> Заказы</button>
+            <button class="edit-btn" onclick="editGiveaway()"><i class="fas fa-gift"></i> Розыгрыш</button>
+            <button class="edit-btn" onclick="importFromWhatsApp()"><i class="fab fa-whatsapp"></i> Импорт WhatsApp</button>
+            <button class="edit-btn" onclick="saveDesign()"><i class="fas fa-save"></i> Сохранить</button>
+            <button class="edit-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Выйти</button>
+        </div>
+    </div>
+
+    <!-- Шапка сайта -->
+    <header class="header" id="siteHeader">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <img src="https://via.placeholder.com/50x50/2c5aa0/ffffff?text=DS" alt="Логотип" class="logo" id="siteLogo">
+                    <div class="site-info">
+                        <h1 class="site-title" id="siteTitle">Магазин "Для своих"</h1>
+                        <p class="site-description" id="siteDescription">Лучшие товары по специальным ценам</p>
+                    </div>
+                </div>
+                
+                <div class="header-contacts">
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <span id="headerPhone">+7 (923) 753-36-06</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <span id="headerEmail">prodtorg.barnaul@gmail.com</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span id="headerAddress">г. Барнаул, ул. Островского, 10</span>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <button class="btn btn-outline" onclick="openCart()">
+                        <i class="fas fa-shopping-cart"></i>
+                        Корзина <span id="cartCount">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Основной контент -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Поиск и фильтры -->
+            <div class="filters-section">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Поиск товаров..." oninput="filterProducts()">
+                    <i class="fas fa-search"></i>
+                </div>
+                
+                <div class="category-filters" id="categoryFilters">
+                    <!-- Категории загружаются динамически -->
+                </div>
+
+                <div class="sort-options">
+                    <select id="sortSelect" onchange="sortProducts()">
+                        <option value="name">По названию</option>
+                        <option value="price">По цене (возр.)</option>
+                        <option value="price_desc">По цене (убыв.)</option>
+                        <option value="newest">Сначала новые</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Сетка товаров -->
+            <div class="products-grid" id="productsGrid">
+                <!-- Товары загружаются динамически -->
+            </div>
+
+            <!-- Сообщение если товаров нет -->
+            <div id="noProducts" style="display: none; text-align: center; padding: 40px;">
+                <i class="fas fa-box-open" style="font-size: 3rem; color: var(--gray); margin-bottom: 20px;"></i>
+                <h3>Товары не найдены</h3>
+                <p>Попробуйте изменить параметры поиска или загрузить товары через конструктор</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Футер -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Магазин "Для своих"</h3>
+                    <p>Лучшие товары по специальным ценам для наших клиентов</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Контакты</h4>
+                    <p><i class="fas fa-phone"></i> +7 (923) 753-36-06</p>
+                    <p><i class="fas fa-envelope"></i> prodtorg.barnaul@gmail.com</p>
+                    <p><i class="fas fa-map-marker-alt"></i> г. Барнаул, ул. Островского, 10</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Часы работы</h4>
+                    <p>Пн-Пт: 9:00 - 18:00</p>
+                    <p>Сб-Вс: 10:00 - 16:00</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Магазин "Для своих". Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Модальные окна -->
+    <div id="cartModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCart()">&times;</span>
+            <h2>Корзина</h2>
+            <div id="cartItems"></div>
+            <div class="cart-total">
+                <strong>Итого: <span id="cartTotal">0</span> ₽</strong>
+            </div>
+            <!-- Кнопка синхронизации добавится динамически -->
+        </div>
+    </div>
+
+    <div id="editOverlay" class="edit-overlay">
+        <div id="productsPanel" class="products-panel">
+            <div class="panel-header">
+                <h3 id="panelTitle">Панель управления</h3>
+                <span class="close-panel" onclick="closePanel()">&times;</span>
+            </div>
+            <div class="panel-content" id="productsPanelContent">
+                <!-- Контент панели загружается динамически -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Уведомления -->
+    <div id="notification" class="notification"></div>
+
+    <!-- Скрипты -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="assets/js/script.js"></script>
+    <script src="assets/js/constructor.js"></script>
+    <script src="assets/js/whatsapp-integration.js"></script>
+    <script src="assets/js/cart-sync.js"></script>
+</body>
+</html>
