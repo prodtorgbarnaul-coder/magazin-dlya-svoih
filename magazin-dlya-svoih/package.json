@@ -1,0 +1,33 @@
+
+📄 8. package.json
+
+```json
+{
+  "name": "magazin-dlya-svoih",
+  "version": "1.0.0",
+  "description": "Умный конструктор интернет-магазина с интеграцией WhatsApp",
+  "main": "index.html",
+  "scripts": {
+    "start": "live-server --port=3000",
+    "build": "echo 'No build process needed'",
+    "deploy": "gh-pages -d ."
+  },
+  "keywords": [
+    "ecommerce",
+    "whatsapp",
+    "constructor",
+    "online-store",
+    "javascript"
+  ],
+  "author": "Магазин 'Для своих'",
+  "license": "MIT",
+  "devDependencies": {
+    "live-server": "^1.2.2",
+    "gh-pages": "^4.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/magazin-dlya-svoih.git"
+  },
+  "homepage": "https://your-username.github.io/magazin-dlya-svoih"
+}
