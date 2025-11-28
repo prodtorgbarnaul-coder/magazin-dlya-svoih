@@ -1,29 +1,22 @@
 {
   "name": "magazin-dlya-svoih",
   "version": "1.0.0",
-  "description": "Умный конструктор интернет-магазина с интеграцией WhatsApp",
+  "description": "Закрытый магазин для друзей и близких",
   "main": "index.html",
   "scripts": {
     "start": "live-server --port=3000",
-    "build": "echo 'No build process needed'",
-    "deploy": "gh-pages -d ."
+    "dev": "live-server --port=3000 --watch=assets/,data/",
+    "build": "echo 'Build completed'",
+    "export": "node scripts/export-data.js",
+    "export-products": "node scripts/export-products.js"
   },
-  "keywords": [
-    "ecommerce",
-    "whatsapp",
-    "constructor",
-    "online-store",
-    "javascript"
-  ],
-  "author": "Магазин 'Для своих'",
+  "keywords": ["магазин", "ecommerce", "constructor"],
+  "author": "Ваше Имя",
   "license": "MIT",
   "devDependencies": {
-    "live-server": "^1.2.2",
-    "gh-pages": "^4.0.0"
+    "live-server": "^1.2.2"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/your-username/magazin-dlya-svoih.git"
-  },
-  "homepage": "https://your-username.github.io/magazin-dlya-svoih"
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
 }
