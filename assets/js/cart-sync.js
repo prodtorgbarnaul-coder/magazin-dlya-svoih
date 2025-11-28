@@ -1,386 +1,354 @@
-// ==================== СИНХРОНИЗАЦИЯ КОРЗИНЫ МЕЖДУ ВКЛАДКАМИ ====================
-class CartSync {
-    constructor() {
-        this.storageKey = 'magazin_cart_sync';
-        this.init();
+// ==================== ОСНОВНЫЕ ДАННЫЕ ====================
+let products = JSON.parse(localStorage.getItem('products')) || [];
+let cart = JSON.parse(localStorage.getItem('cart')) || [];
+let filteredProducts = [];
+let categoriesData = JSON.parse(localStorage.getItem('categoriesData')) || [
+    { 
+        name: 'Бытовая химия', 
+        icon: '🧴', 
+        color1: '#667eea', 
+        color2: '#764ba2',
+        backgroundType: 'gradient',
+        backgroundImage: ''
+    },
+    { 
+        name: 'Постельное белье', 
+        icon: '🛏️', 
+        color1: '#f093fb', 
+        color2: '#f5576c',
+        backgroundType: 'gradient',
+        backgroundImage: ''
+    },
+    { 
+        name: 'Рыба и морепродукты', 
+        icon: '🐟', 
+        color1: '#4facfe', 
+        color2: '#00f2fe',
+        backgroundType: 'gradient',
+        backgroundImage: ''
+    },
+    { 
+        name: 'Мясо и птица', 
+        icon: '🍗', 
+        color1: '#43e97b', 
+        color2: '#38f9d7',
+        backgroundType: 'gradient',
+        backgroundImage: ''
+    },
+    { 
+        name: 'Кондитерские изделия', 
+        icon: '🍰', 
+        color1: '#fa709a', 
+        color2: '#fee140',
+        backgroundType: 'gradient',
+        backgroundImage: ''
+    },
+    { 
+        name: 'Молочные продукты', 
+        icon: '🥛', 
+        color1: '#a8edea', 
+        color2: '#fed6e3',
+        backgroundType: 'gradient',
+        backgroundImage: ''
+    },
+    { 
+        name: 'Мангальные зоны и мангалы', 
+        icon: '🔥', 
+        color1: '#ff9a9e', 
+        color2: '#fecfef',
+        backgroundType: 'gradient',
+        backgroundImage: ''
     }
+];
 
-    init() {
-        // Слушаем изменения в localStorage
-        window.addEventListener('storage', this.handleStorageChange.bind(this));
+let siteSettings = JSON.parse(localStorage.getItem('siteSettings')) || {
+    backgroundType: 'gradient',
+    backgroundImage: '',
+    headerColor: '#2c5aa0',
+    logoText: 'ДЛЯ СВОИХ'
+};
+
+let currentUser = JSON.parse(localStorage.getItem('currentUser')) || {
+    name: 'Гость',
+    phone: '',
+    role: 'customer',
+    avatar: 'Г'
+};
+
+// ==================== ОСНОВНЫЕ ФУНКЦИИ ====================
+function loadCategories() {
+    const categoriesGrid = document.getElementById('categoriesGrid');
+    categoriesGrid.innerHTML = categoriesData.map(category => {
+        let background = getCategoryBackground(category);
         
-        // Синхронизируем при загрузке
-        this.syncCart();
-        
-        // Периодическая синхронизация (на случай если событие storage не сработало)
-        setInterval(() => this.syncCart(), 2000);
-    }
-
-    handleStorageChange(event) {
-        if (event.key === 'cart' || event.key === this.storageKey) {
-            this.syncCart();
-        }
-    }
-
-    syncCart() {
-        const syncData = localStorage.getItem(this.storageKey);
-        if (!syncData) return;
-
-        try {
-            const remoteCart = JSON.parse(syncData);
-            const localCart = JSON.parse(localStorage.getItem('cart')) || [];
-
-            // Объединяем корзины
-            const mergedCart = this.mergeCarts(localCart, remoteCart);
-            
-            // Сохраняем объединенную корзину
-            localStorage.setItem('cart', JSON.stringify(mergedCart));
-            
-            // Обновляем UI
-            if (typeof updateCartCount === 'function') {
-                updateCartCount();
-            }
-
-            // Обновляем корзину если она открыта
-            if (document.getElementById('cartModal').style.display === 'block') {
-                if (typeof openCart === 'function') {
-                    openCart();
-                }
-            }
-
-        } catch (error) {
-            console.error('Cart sync error:', error);
-        }
-    }
-
-    mergeCarts(localCart, remoteCart) {
-        const merged = [...localCart];
-        
-        remoteCart.forEach(remoteItem => {
-            const existingItemIndex = merged.findIndex(item => 
-                item.id === remoteItem.id && item.cartId === remoteItem.cartId
-            );
-
-            if (existingItemIndex !== -1) {
-                // Обновляем количество
-                merged[existingItemIndex].quantity = Math.max(
-                    merged[existingItemIndex].quantity,
-                    remoteItem.quantity
-                );
-            } else {
-                // Добавляем новый товар
-                merged.push(remoteItem);
-            }
-        });
-
-        return merged;
-    }
-
-    broadcastCartUpdate() {
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
-        localStorage.setItem(this.storageKey, JSON.stringify(cart));
-        
-        // Триггерим собственное событие для других вкладок
-        localStorage.removeItem(this.storageKey);
-        setTimeout(() => {
-            localStorage.setItem(this.storageKey, JSON.stringify(cart));
-        }, 100);
-    }
-}
-
-// ==================== РЕАКТИВНЫЕ СВОЙСТВА ДЛЯ КОРЗИНЫ ====================
-function makeCartReactive() {
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
-    
-    // Перехватываем методы работы с корзиной
-    const originalAddToCart = window.addToCart;
-    const originalChangeQuantity = window.changeQuantity;
-    const originalRemoveFromCart = window.removeFromCart;
-    
-    window.addToCart = function(productId) {
-        originalAddToCart(productId);
-        cartSync.broadcastCartUpdate();
-    };
-    
-    window.changeQuantity = function(cartId, change) {
-        originalChangeQuantity(cartId, change);
-        cartSync.broadcastCartUpdate();
-    };
-    
-    window.removeFromCart = function(cartId) {
-        originalRemoveFromCart(cartId);
-        cartSync.broadcastCartUpdate();
-    };
-}
-
-// ==================== ОФФЛАЙН-РЕЖИМ ====================
-class OfflineManager {
-    constructor() {
-        this.init();
-    }
-
-    init() {
-        // Проверяем онлайн статус
-        window.addEventListener('online', this.handleOnline.bind(this));
-        window.addEventListener('offline', this.handleOffline.bind(this));
-        
-        // Показываем текущий статус
-        this.updateOnlineStatus();
-    }
-
-    handleOnline() {
-        this.updateOnlineStatus();
-        showNotification('🌐 Соединение восстановлено', 'success');
-        
-        // Синхронизируем данные при восстановлении связи
-        this.syncPendingData();
-    }
-
-    handleOffline() {
-        this.updateOnlineStatus();
-        showNotification('⚠️ Работаем в оффлайн-режиме', 'warning');
-    }
-
-    updateOnlineStatus() {
-        const statusElement = document.getElementById('onlineStatus') || this.createStatusElement();
-        statusElement.textContent = navigator.online ? '🌐 Онлайн' : '⚠️ Оффлайн';
-        statusElement.style.background = navigator.online ? 'var(--success)' : 'var(--warning)';
-    }
-
-    createStatusElement() {
-        const statusElement = document.createElement('div');
-        statusElement.id = 'onlineStatus';
-        statusElement.style.cssText = `
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            background: var(--success);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            z-index: 10000;
+        return `
+            <div class="category-card" style="background: ${background}" onclick="filterByCategory('${category.name}')">
+                <span class="category-icon">${category.icon}</span>
+                <h3>${category.name}</h3>
+            </div>
         `;
-        document.body.appendChild(statusElement);
-        return statusElement;
-    }
-
-    syncPendingData() {
-        // Здесь можно добавить синхронизацию с сервером
-        console.log('Syncing pending data...');
-    }
+    }).join('');
 }
 
-// ==================== ЭКСПОРТ ДАННЫХ ====================
-function exportCartData() {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
+function getCategoryBackground(category) {
+    if (category.backgroundType === 'gradient') {
+        return `linear-gradient(135deg, ${category.color1}, ${category.color2})`;
+    } else if (category.backgroundType === 'solid') {
+        return category.color1;
+    } else if (category.backgroundType === 'image') {
+        return `url('${category.backgroundImage}') center/cover`;
+    }
+    return `linear-gradient(135deg, ${category.color1}, ${category.color2})`;
+}
+
+function loadProducts() {
+    const productsGrid = document.getElementById('productsGrid');
     
-    const exportData = {
-        cart: cart,
-        orders: orders,
-        exportDate: new Date().toISOString(),
-        totalOrders: orders.length,
-        totalCartItems: cart.reduce((sum, item) => sum + item.quantity, 0)
+    if (filteredProducts.length === 0) {
+        productsGrid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                <h3 style="color: var(--gray); margin-bottom: 20px;">Товары не найдены</h3>
+                <p style="color: var(--gray);">Попробуйте изменить параметры фильтрации</p>
+            </div>
+        `;
+        return;
+    }
+
+    productsGrid.innerHTML = filteredProducts.map(product => {
+        const discount = product.oldPrice ? Math.round((1 - product.price / product.oldPrice) * 100) : 0;
+        const statusClass = `status-${product.status.replace('_', '-')}`;
+        
+        const productImage = product.image && product.image.trim() !== '' 
+            ? product.image 
+            : 'https://via.placeholder.com/300x200/ecf0f1/7f8c8d?text=Нет+изображения';
+        
+        return `
+            <div class="product-card">
+                ${discount > 0 ? `<div class="product-badge">-${discount}%</div>` : ''}
+                <img src="${productImage}" alt="${product.name}" class="product-image" 
+                     onerror="this.src='https://via.placeholder.com/300x200/ecf0f1/7f8c8d?text=Нет+изображения'"
+                     onclick="showProductDetails(${product.id})">
+                <div class="product-info">
+                    <div class="product-category">${product.category}</div>
+                    <h3 class="product-name" onclick="showProductDetails(${product.id})">${product.name}</h3>
+                    <div class="product-description-short">${product.description}</div>
+                    
+                    <div class="product-price">
+                        <span class="current-price">${product.price.toLocaleString()} ₽</span>
+                        ${product.oldPrice ? `<span class="old-price">${product.oldPrice.toLocaleString()} ₽</span>` : ''}
+                        ${discount > 0 ? `<span class="discount">-${discount}%</span>` : ''}
+                    </div>
+                    
+                    <div class="product-status ${statusClass}">
+                        ${getProductStatusText(product.status)}
+                    </div>
+                    
+                    <div class="product-actions">
+                        <button class="add-to-cart" onclick="addToCart(${product.id})" 
+                                ${product.status !== 'in_stock' ? 'disabled' : ''}>
+                            <i class="fas fa-shopping-cart"></i>
+                            ${product.status === 'in_stock' ? 'В корзину' : 'Недоступно'}
+                        </button>
+                        <button class="details-btn" onclick="showProductDetails(${product.id})">
+                            <i class="fas fa-info"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function getProductStatusText(status) {
+    const statuses = {
+        'in_stock': 'В наличии',
+        'out_of_stock': 'Нет в наличии',
+        'pre_order': 'Под заказ'
     };
-    
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataBlob = new Blob([dataStr], {type: 'application/json'});
-    
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(dataBlob);
-    link.download = `cart_export_${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    
-    showNotification('📊 Данные корзины экспортированы');
+    return statuses[status] || status;
 }
 
-function importCartData(file) {
-    const reader = new FileReader();
+function updateCategoryFilter() {
+    const categoryFilter = document.getElementById('categoryFilter');
     
-    reader.onload = function(e) {
-        try {
-            const importData = JSON.parse(e.target.result);
-            
-            if (importData.cart) {
-                localStorage.setItem('cart', JSON.stringify(importData.cart));
-            }
-            
-            if (importData.orders) {
-                localStorage.setItem('orders', JSON.stringify(importData.orders));
-            }
-            
-            showNotification('✅ Данные корзины импортированы');
-            
-            // Обновляем UI
-            if (typeof updateCartCount === 'function') {
-                updateCartCount();
-            }
-            
-        } catch (error) {
-            showNotification('❌ Ошибка при импорте данных', 'error');
-            console.error('Import error:', error);
-        }
-    };
+    const categoriesFromProducts = [...new Set(products.map(p => p.category))];
+    const categoriesFromSettings = categoriesData.map(cat => cat.name);
+    const allCategories = [...new Set([...categoriesFromProducts, ...categoriesFromSettings])];
     
-    reader.readAsText(file);
+    categoryFilter.innerHTML = '<option value="">Все категории</option>' +
+        allCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
 }
 
-// ==================== АНАЛИТИКА КОРЗИНЫ ====================
-class CartAnalytics {
-    constructor() {
-        this.trackEvents();
-    }
+function filterByCategory(category) {
+    document.getElementById('categoryFilter').value = category;
+    filterProducts();
+    document.getElementById('productsSection').scrollIntoView({ behavior: 'smooth' });
+}
 
-    trackEvents() {
-        // Отслеживаем добавление в корзину
-        const originalAddToCart = window.addToCart;
-        window.addToCart = function(productId) {
-            originalAddToCart(productId);
-            cartAnalytics.logEvent('add_to_cart', { productId });
-        };
-
-        // Отслеживаем оформление заказа
-        const originalCompleteWhatsAppOrder = window.completeWhatsAppOrder;
-        window.completeWhatsAppOrder = function() {
-            cartAnalytics.logEvent('purchase', { 
-                value: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-                items: cart.length
-            });
-            originalCompleteWhatsAppOrder();
-        };
-    }
-
-    logEvent(eventName, params = {}) {
-        const analyticsData = JSON.parse(localStorage.getItem('cart_analytics')) || {};
-        const event = {
-            timestamp: new Date().toISOString(),
-            event: eventName,
-            ...params
-        };
-        
-        if (!analyticsData.events) {
-            analyticsData.events = [];
+function filterProducts() {
+    const category = document.getElementById('categoryFilter').value;
+    const priceRange = document.getElementById('priceFilter').value;
+    
+    filteredProducts = products.filter(product => {
+        if (category && product.category !== category) return false;
+        if (priceRange) {
+            const [min, max] = priceRange.split('-').map(Number);
+            if (product.price < min || product.price > max) return false;
         }
-        
-        analyticsData.events.push(event);
-        localStorage.setItem('cart_analytics', JSON.stringify(analyticsData));
-        
-        console.log('Analytics event:', eventName, params);
-    }
+        return true;
+    });
+    
+    loadProducts();
+}
 
-    getStats() {
-        const analyticsData = JSON.parse(localStorage.getItem('cart_analytics')) || { events: [] };
-        const events = analyticsData.events || [];
-        
-        const addToCartEvents = events.filter(e => e.event === 'add_to_cart');
-        const purchaseEvents = events.filter(e => e.event === 'purchase');
-        
-        return {
-            totalAddToCart: addToCartEvents.length,
-            totalPurchases: purchaseEvents.length,
-            totalRevenue: purchaseEvents.reduce((sum, e) => sum + (e.value || 0), 0),
-            conversionRate: purchaseEvents.length / Math.max(addToCartEvents.length, 1)
-        };
+function searchProducts() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    
+    if (searchTerm.trim() === '') {
+        filteredProducts = [...products];
+    } else {
+        filteredProducts = products.filter(product => 
+            product.name.toLowerCase().includes(searchTerm) ||
+            product.description.toLowerCase().includes(searchTerm) ||
+            product.category.toLowerCase().includes(searchTerm)
+        );
     }
+    
+    loadProducts();
+}
+
+function sortProducts() {
+    const sortBy = document.getElementById('sortBy').value;
+    if (sortBy === 'price_asc') {
+        filteredProducts.sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'price_desc') {
+        filteredProducts.sort((a, b) => b.price - a.price);
+    } else if (sortBy === 'name') {
+        filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    loadProducts();
+}
+
+// ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
+function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+function closePanel() {
+    document.querySelectorAll('.edit-panel').forEach(panel => {
+        panel.style.display = 'none';
+    });
+    document.getElementById('editOverlay').style.display = 'none';
+}
+
+function openProfile() {
+    document.getElementById('profileModal').style.display = 'block';
+    updateProfileView();
+}
+
+function closeProfile() {
+    document.getElementById('profileModal').style.display = 'none';
+}
+
+function showProductDetails(productId) {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+
+    const modal = document.getElementById('productModal');
+    const title = document.getElementById('productModalTitle');
+    const content = document.getElementById('productModalContent'];
+    
+    title.textContent = product.name;
+    content.innerHTML = `
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="${product.image}" alt="${product.name}" 
+                 style="max-width: 100%; max-height: 300px; border-radius: 10px;"
+                 onerror="this.src='https://via.placeholder.com/400x300/ecf0f1/7f8c8d?text=Нет+изображения'">
+        </div>
+        <div style="margin-bottom: 15px;">
+            <strong>Категория:</strong> ${product.category}
+        </div>
+        <div style="margin-bottom: 15px;">
+            <strong>Цена:</strong> <span style="font-size: 1.5rem; color: var(--primary); font-weight: bold;">${product.price} ₽</span>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <strong>Наличие:</strong> ${product.quantity} шт.
+        </div>
+        <div style="margin-bottom: 20px;">
+            <strong>Описание:</strong>
+            <p style="margin-top: 10px; line-height: 1.6;">${product.description}</p>
+        </div>
+        <button class="btn btn-primary" onclick="addToCart(${product.id}); closeProductModal();" style="width: 100%;">
+            <i class="fas fa-shopping-cart"></i> Добавить в корзину
+        </button>
+    `;
+    
+    modal.style.display = 'block';
+}
+
+function closeProductModal() {
+    document.getElementById('productModal').style.display = 'none';
+}
+
+function saveDesign() {
+    showNotification('💾 Все изменения сохранены!');
 }
 
 // ==================== ИНИЦИАЛИЗАЦИЯ ====================
-let cartSync;
-let offlineManager;
-let cartAnalytics;
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Инициализируем менеджеры
-    cartSync = new CartSync();
-    offlineManager = new OfflineManager();
-    cartAnalytics = new CartAnalytics();
-    
-    // Делаем корзину реактивной
-    makeCartReactive();
-    
-    // Добавляем кнопки управления данными для админа
-    if (isAdmin) {
-        addAdminDataButtons();
+    // Применяем сохраненные настройки
+    if (siteSettings.backgroundType === 'gradient') {
+        document.body.style.background = `linear-gradient(135deg, ${siteSettings.color1}, ${siteSettings.color2})`;
+    } else if (siteSettings.backgroundType === 'solid') {
+        document.body.style.background = siteSettings.solidColor;
+    } else if (siteSettings.backgroundType === 'image' && siteSettings.backgroundImage) {
+        document.body.style.background = `url('${siteSettings.backgroundImage}') center/cover fixed`;
+    }
+
+    // Загружаем данные
+    loadCategories();
+    loadProducts();
+    updateCategoryFilter();
+    updateCartCount();
+    updateUserInfo();
+
+    // Добавляем тестовые товары если их нет
+    if (products.length === 0) {
+        const testProducts = [
+            {
+                id: 100,
+                name: 'FAIRY banane - 5 литров',
+                category: 'Бытовая химия',
+                price: 800,
+                oldPrice: null,
+                quantity: 10,
+                status: 'in_stock',
+                description: 'Концентрированное средство для мытья посуды. Объем: 5 литров. Аромат: Банан.',
+                image: 'https://via.placeholder.com/300x200/667eea/ffffff?text=FAIRY'
+            },
+            {
+                id: 101,
+                name: 'Комплект постельного белья Люкс',
+                category: 'Постельное белье',
+                price: 2500,
+                oldPrice: 3000,
+                quantity: 5,
+                status: 'in_stock',
+                description: 'Набор постельного белья из 100% хлопка. Размер: 2.0 спальный.',
+                image: 'https://via.placeholder.com/300x200/f093fb/ffffff?text=Постельное'
+            }
+        ];
+
+        products = testProducts;
+        localStorage.setItem('products', JSON.stringify(products));
+        filteredProducts = [...products];
+        loadProducts();
+        updateCategoryFilter();
     }
 });
-
-function addAdminDataButtons() {
-    const adminPanel = document.createElement('div');
-    adminPanel.style.cssText = `
-        position: fixed;
-        bottom: 100px;
-        left: 20px;
-        z-index: 9999;
-        background: rgba(255,255,255,0.95);
-        padding: 10px;
-        border-radius: var(--radius);
-        box-shadow: var(--shadow);
-    `;
-    
-    adminPanel.innerHTML = `
-        <div style="display: flex; gap: 5px; flex-direction: column;">
-            <button class="btn btn-sm btn-info" onclick="exportCartData()">📊 Экспорт данных</button>
-            <button class="btn btn-sm btn-warning" onclick="showAnalytics()">📈 Аналитика</button>
-            <input type="file" id="cartImport" accept=".json" style="display: none;" onchange="handleCartImport(this.files[0])">
-            <button class="btn btn-sm btn-secondary" onclick="document.getElementById('cartImport').click()">📥 Импорт</button>
-        </div>
-    `;
-    
-    document.body.appendChild(adminPanel);
-}
-
-function showAnalytics() {
-    const stats = cartAnalytics.getStats();
-    
-    document.getElementById('editOverlay').style.display = 'block';
-    document.getElementById('productsPanel').style.display = 'block';
-    document.getElementById('productsPanelContent').innerHTML = `
-        <h3>📈 Аналитика корзины</h3>
-        
-        <div class="analytics-stats">
-            <div class="stat-item">
-                <div class="stat-value">${stats.totalAddToCart}</div>
-                <div class="stat-label">Добавлений в корзину</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">${stats.totalPurchases}</div>
-                <div class="stat-label">Оформленных заказов</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">${stats.totalRevenue.toLocaleString()} ₽</div>
-                <div class="stat-label">Общая выручка</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">${(stats.conversionRate * 100).toFixed(1)}%</div>
-                <div class="stat-label">Конверсия</div>
-            </div>
-        </div>
-
-        <div class="panel-actions">
-            <button class="btn btn-danger" onclick="clearAnalytics()">Очистить аналитику</button>
-            <button class="btn btn-primary" onclick="closePanel()">Закрыть</button>
-        </div>
-    `;
-}
-
-function clearAnalytics() {
-    if (confirm('Очистить всю аналитику?')) {
-        localStorage.removeItem('cart_analytics');
-        showNotification('🗑️ Аналитика очищена');
-        closePanel();
-    }
-}
-
-function handleCartImport(file) {
-    if (file) {
-        importCartData(file);
-    }
-}
-
-// ==================== ГЛОБАЛЬНЫЕ ФУНКЦИИ ====================
-window.exportCartData = exportCartData;
-window.importCartData = importCartData;
-window.showAnalytics = showAnalytics;
-window.clearAnalytics = clearAnalytics;
-window.handleCartImport = handleCartImport;
