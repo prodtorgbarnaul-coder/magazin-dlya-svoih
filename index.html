@@ -1081,6 +1081,73 @@
             font-weight: bold;
         }
 
+        /* Стили для кнопок шаринга */
+        .share-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .share-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .share-btn i {
+            font-size: 24px;
+        }
+        
+        .whatsapp { background: #25D366 !important; color: white; }
+        .telegram { background: #0088cc !important; color: white; }
+        .vk { background: #4C75A3 !important; color: white; }
+        .copy { background: var(--primary) !important; color: white; }
+        
+        .whatsapp:hover { background: #128C7E !important; }
+        .telegram:hover { background: #0077B5 !important; }
+        .vk:hover { background: #3D5A80 !important; }
+        .copy:hover { background: #1a3a6b !important; }
+
+        /* Стили для формы входа */
+        .login-form {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: 100px auto;
+        }
+
+        .user-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .user-type-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--border);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .user-type-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
         @media (max-width: 768px) {
             .header-main .container {
                 flex-direction: column;
@@ -1123,8 +1190,34 @@
     </style>
 </head>
 <body>
+    <!-- Форма входа -->
+    <div id="loginModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">🔐 Вход в магазин</h3>
+            </div>
+            <div class="login-form">
+                <div class="user-type-selector">
+                    <button class="user-type-btn active" onclick="setUserType('client')">Покупатель</button>
+                    <button class="user-type-btn" onclick="setUserType('admin')">Администратор</button>
+                </div>
+                <div class="form-group">
+                    <label>Имя:</label>
+                    <input type="text" class="form-control" id="userName" placeholder="Введите ваше имя">
+                </div>
+                <div class="form-group" id="adminPasswordGroup" style="display: none;">
+                    <label>Пароль администратора:</label>
+                    <input type="password" class="form-control" id="adminPassword" placeholder="Введите пароль">
+                </div>
+                <div class="panel-actions">
+                    <button class="btn btn-success" onclick="login()">Войти</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Конструктор -->
-    <div class="constructor-toolbar" id="constructorToolbar">
+    <div class="constructor-toolbar" id="constructorToolbar" style="display: none;">
         <div class="constructor-toggle" onclick="toggleConstructor()">
             <i class="fas fa-palette"></i>
         </div>
@@ -1136,6 +1229,7 @@
             <button class="edit-btn" onclick="editOrders()">Заказы</button>
             <button class="edit-btn" onclick="editGiveaway()">Розыгрыш</button>
             <button class="edit-btn" onclick="shareCart()">Поделиться корзиной</button>
+            <button class="edit-btn" onclick="shareShop()">Поделиться магазином</button>
             <button class="edit-btn" onclick="saveDesign()">Сохранить</button>
             <button class="edit-btn" onclick="logout()">Выйти</button>
         </div>
@@ -1184,19 +1278,7 @@
                 <span class="close" onclick="closeProfile()">&times;</span>
             </div>
             <div id="profileContent">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <div class="user-avatar" style="width: 80px; height: 80px; font-size: 2rem; margin: 0 auto 15px;">А</div>
-                    <h3>Администратор</h3>
-                    <p style="color: var(--gray);">Администратор магазина</p>
-                </div>
-                <div class="form-group">
-                    <label>Email:</label>
-                    <input type="email" class="form-control" value="admin@myshop.ru" readonly>
-                </div>
-                <div class="form-group">
-                    <label>Телефон:</label>
-                    <input type="tel" class="form-control" value="+7 (923) 753-36-06" readonly>
-                </div>
+                <!-- Контент профиля -->
             </div>
         </div>
     </div>
@@ -1235,6 +1317,10 @@
                 </div>
                 
                 <div class="header-actions">
+                    <a href="#" class="header-action" onclick="shareShop(); return false;">
+                        <i class="fas fa-share-alt"></i>
+                        <span>Поделиться</span>
+                    </a>
                     <a href="#" class="header-action" onclick="openProfile(); return false;">
                         <i class="far fa-user"></i>
                         <span>Профиль</span>
@@ -1249,11 +1335,11 @@
                         <span>Корзина</span>
                         <div class="cart-count" id="cartCount">0</div>
                     </a>
-                    <div class="user-info" id="userInfo">
-                        <div class="user-avatar">А</div>
+                    <div class="user-info" id="userInfo" style="display: none;">
+                        <div class="user-avatar" id="userAvatar">Г</div>
                         <div class="user-details">
-                            <div class="user-name">Администратор</div>
-                            <div class="user-role">Администратор</div>
+                            <div class="user-name" id="userDisplayName">Гость</div>
+                            <div class="user-role" id="userRole">Покупатель</div>
                         </div>
                         <button class="logout-btn" onclick="logout()" title="Выйти">
                             <i class="fas fa-sign-out-alt"></i>
@@ -1330,6 +1416,23 @@
                         <li><i class="fas fa-map-marker-alt"></i> г. Барнаул, ул. Островского, 10</li>
                         <li><i class="fas fa-clock"></i> Пн-Вс: 9:00-21:00</li>
                     </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Поделиться магазином</h3>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button onclick="shareViaWhatsApp()" style="background: #25D366; border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer;">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                        <button onclick="shareViaTelegram()" style="background: #0088cc; border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer;">
+                            <i class="fab fa-telegram"></i>
+                        </button>
+                        <button onclick="shareViaVK()" style="background: #4C75A3; border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer;">
+                            <i class="fab fa-vk"></i>
+                        </button>
+                    </div>
+                    <p style="color: #bdc3c7; font-size: 12px; margin-top: 10px;">
+                        Расскажите друзьям о нашем магазине!
+                    </p>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -1408,6 +1511,81 @@
             headerColor: '#2c5aa0',
             logoText: 'ДЛЯ СВОИХ'
         };
+
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+        let userType = 'client';
+
+        // ==================== СИСТЕМА ВХОДА ====================
+        function showLoginModal() {
+            document.getElementById('loginModal').style.display = 'block';
+        }
+
+        function setUserType(type) {
+            userType = type;
+            document.querySelectorAll('.user-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            document.getElementById('adminPasswordGroup').style.display = type === 'admin' ? 'block' : 'none';
+        }
+
+        function login() {
+            const userName = document.getElementById('userName').value.trim();
+            if (!userName) {
+                showNotification('❌ Введите имя');
+                return;
+            }
+
+            if (userType === 'admin') {
+                const password = document.getElementById('adminPassword').value;
+                if (password !== 'admin123') {
+                    showNotification('❌ Неверный пароль администратора');
+                    return;
+                }
+            }
+
+            currentUser = {
+                name: userName,
+                type: userType,
+                avatar: userName.charAt(0).toUpperCase()
+            };
+
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            document.getElementById('loginModal').style.display = 'none';
+            updateUserInterface();
+            showNotification(`✅ Добро пожаловать, ${userName}!`);
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            updateUserInterface();
+            showLoginModal();
+            showNotification('👋 До свидания!');
+        }
+
+        function updateUserInterface() {
+            const userInfo = document.getElementById('userInfo');
+            const constructorToolbar = document.getElementById('constructorToolbar');
+            
+            if (currentUser) {
+                document.getElementById('userDisplayName').textContent = currentUser.name;
+                document.getElementById('userAvatar').textContent = currentUser.avatar;
+                document.getElementById('userRole').textContent = currentUser.type === 'admin' ? 'Администратор' : 'Покупатель';
+                userInfo.style.display = 'flex';
+                
+                // Показываем конструктор только для администратора
+                if (currentUser.type === 'admin') {
+                    constructorToolbar.style.display = 'block';
+                } else {
+                    constructorToolbar.style.display = 'none';
+                }
+            } else {
+                userInfo.style.display = 'none';
+                constructorToolbar.style.display = 'none';
+            }
+        }
 
         // ==================== ОСНОВНЫЕ ФУНКЦИИ ====================
         function loadCategories() {
@@ -1565,6 +1743,12 @@
 
         // ==================== КОРЗИНА ====================
         function addToCart(productId) {
+            if (!currentUser) {
+                showNotification('❌ Войдите в систему для добавления в корзину');
+                showLoginModal();
+                return;
+            }
+
             const product = products.find(p => p.id === productId);
             if (!product) return;
 
@@ -1591,6 +1775,12 @@
         }
 
         function openCart() {
+            if (!currentUser) {
+                showNotification('❌ Войдите в систему для просмотра корзины');
+                showLoginModal();
+                return;
+            }
+
             const modal = document.getElementById('cartModal');
             const cartItems = document.getElementById('cartItems');
             const cartTotal = document.getElementById('cartTotal');
@@ -1696,6 +1886,102 @@
                 const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
                 window.open(whatsappUrl, '_blank');
             }
+        }
+
+        // ==================== ПОДЕЛИТЬСЯ МАГАЗИНОМ ====================
+        function shareShop() {
+            const shopName = siteSettings.logoText || "Магазин Для своих";
+            const shopDescription = "Закрытый магазин для друзей и близких. Специальные цены, эксклюзивные товары и регулярные розыгрыши призов.";
+            const shopContacts = `📞 Телефон: +7 (923) 753-36-06\n📧 Email: prodtorg.barnaul@gmail.com`;
+            
+            const shareText = `🛍️ *${shopName}*\n\n${shopDescription}\n\n${shopContacts}\n\n📍 *Ссылка на магазин:* ${window.location.href}`;
+            
+            document.getElementById('editOverlay').style.display = 'block';
+            document.getElementById('productsPanel').style.display = 'block';
+            document.getElementById('productsPanelContent').innerHTML = `
+                <h3>📤 Поделиться магазином</h3>
+                <div style="text-align: center; margin: 20px 0;">
+                    <p style="margin-bottom: 20px;">Выберите способ для быстрого распространения ссылки на ваш магазин:</p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 25px 0;">
+                        <button class="share-btn whatsapp" onclick="shareViaWhatsApp()">
+                            <i class="fab fa-whatsapp"></i>
+                            WhatsApp
+                        </button>
+                        
+                        <button class="share-btn telegram" onclick="shareViaTelegram()">
+                            <i class="fab fa-telegram"></i>
+                            Telegram
+                        </button>
+                        
+                        <button class="share-btn vk" onclick="shareViaVK()">
+                            <i class="fab fa-vk"></i>
+                            ВКонтакте
+                        </button>
+                        
+                        <button class="share-btn copy" onclick="copyShopLink()">
+                            <i class="fas fa-copy"></i>
+                            Скопировать
+                        </button>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 20px;">
+                        <h4>📋 Текст для отправки:</h4>
+                        <p style="font-size: 14px; line-height: 1.4; text-align: left;">${shareText.replace(/\n/g, '<br>')}</p>
+                    </div>
+                </div>
+                
+                <div class="panel-actions">
+                    <button class="btn btn-danger" onclick="closePanel()">Закрыть</button>
+                </div>
+            `;
+        }
+
+        function shareViaWhatsApp() {
+            const shopName = siteSettings.logoText || "Магазин Для своих";
+            const shareText = `🛍️ *${shopName}*\n\nЗакрытый магазин для друзей и близких. Специальные цены, эксклюзивные товары и регулярные розыгрыши призов.\n\n📞 Телефон: +7 (923) 753-36-06\n📧 Email: prodtorg.barnaul@gmail.com\n\n📍 *Ссылка на магазин:* ${window.location.href}`;
+            
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+            window.open(whatsappUrl, '_blank');
+            showNotification('✅ Открывается WhatsApp...');
+            closePanel();
+        }
+
+        function shareViaTelegram() {
+            const shopName = siteSettings.logoText || "Магазин Для своих";
+            const shareText = `🛍️ *${shopName}*\n\nЗакрытый магазин для друзей и близких. Специальные цены, эксклюзивные товары и регулярные розыгрыши призов.\n\n📞 Телефон: +7 (923) 753-36-06\n📧 Email: prodtorg.barnaul@gmail.com\n\n📍 Ссылка на магазин: ${window.location.href}`;
+            
+            const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(shareText)}`;
+            window.open(telegramUrl, '_blank');
+            showNotification('✅ Открывается Telegram...');
+            closePanel();
+        }
+
+        function shareViaVK() {
+            const shareText = `${siteSettings.logoText || "Магазин Для своих"} - закрытый магазин для друзей и близких`;
+            const vkUrl = `https://vk.com/share.php?url=${encodeURIComponent(window.location.href)}&title=${encodeURIComponent(shareText)}&comment=${encodeURIComponent("Специальные цены, эксклюзивные товары")}`;
+            window.open(vkUrl, '_blank');
+            showNotification('✅ Открывается ВКонтакте...');
+            closePanel();
+        }
+
+        function copyShopLink() {
+            const shopName = siteSettings.logoText || "Магазин Для своих";
+            const shareText = `🛍️ ${shopName}\n\nЗакрытый магазин для друзей и близких. Специальные цены, эксклюзивные товары и регулярные розыгрыши призов.\n\n📞 Телефон: +7 (923) 753-36-06\n📧 Email: prodtorg.barnaul@gmail.com\n\n📍 Ссылка на магазин: ${window.location.href}`;
+            
+            navigator.clipboard.writeText(shareText).then(() => {
+                showNotification('✅ Ссылка скопирована в буфер обмена!');
+                closePanel();
+            }).catch(() => {
+                const tempTextArea = document.createElement('textarea');
+                tempTextArea.value = shareText;
+                document.body.appendChild(tempTextArea);
+                tempTextArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempTextArea);
+                showNotification('✅ Ссылка скопирована в буфер обмена!');
+                closePanel();
+            });
         }
 
         // ==================== КОНСТРУКТОР ====================
@@ -2233,12 +2519,38 @@
                     <input type="number" class="form-control" id="newProductPrice" placeholder="Введите цену">
                 </div>
                 <div class="form-group">
+                    <label>Старая цена (для скидки):</label>
+                    <input type="number" class="form-control" id="newProductOldPrice" placeholder="Оставьте пустым, если нет скидки">
+                </div>
+                <div class="form-group">
                     <label>Количество:</label>
-                    <input type="number" class="form-control" id="newProductQuantity" placeholder="Введите количество">
+                    <input type="number" class="form-control" id="newProductQuantity" placeholder="Введите количество" value="1">
+                </div>
+                <div class="form-group">
+                    <label>Статус:</label>
+                    <select class="form-control" id="newProductStatus">
+                        <option value="in_stock">В наличии</option>
+                        <option value="out_of_stock">Нет в наличии</option>
+                        <option value="pre_order">Под заказ</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Описание:</label>
                     <textarea class="form-control" id="newProductDescription" placeholder="Введите описание" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Изображение товара:</label>
+                    <div class="file-upload" onclick="document.getElementById('newProductImageUpload').click()">
+                        <i class="fas fa-image"></i>
+                        <p>Нажмите для загрузки изображения</p>
+                        <input type="file" id="newProductImageUpload" accept="image/*" style="display: none;" 
+                               onchange="handleNewProductImageUpload(this.files[0])">
+                    </div>
+                    <div class="background-preview" id="newProductPreview">Предпросмотр</div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label>Или введите ссылку на изображение:</label>
+                        <input type="text" class="form-control" id="newProductImageUrl" placeholder="https://example.com/image.jpg">
+                    </div>
                 </div>
                 <div class="panel-actions">
                     <button class="btn btn-success" onclick="saveNewProduct()">Сохранить товар</button>
@@ -2247,12 +2559,29 @@
             `;
         }
 
+        function handleNewProductImageUpload(file) {
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('newProductPreview');
+                preview.style.backgroundImage = `url('${e.target.result}')`;
+                preview.classList.add('has-image');
+                preview.innerHTML = '';
+                document.getElementById('newProductImageUrl').value = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
         function saveNewProduct() {
             const name = document.getElementById('newProductName').value;
             const category = document.getElementById('newProductCategory').value;
             const price = parseInt(document.getElementById('newProductPrice').value);
+            const oldPrice = document.getElementById('newProductOldPrice').value ? parseInt(document.getElementById('newProductOldPrice').value) : null;
             const quantity = parseInt(document.getElementById('newProductQuantity').value);
+            const status = document.getElementById('newProductStatus').value;
             const description = document.getElementById('newProductDescription').value;
+            const imageUrl = document.getElementById('newProductImageUrl').value;
 
             if (!name || !category || !price) {
                 showNotification('❌ Заполните обязательные поля');
@@ -2264,11 +2593,11 @@
                 name: name,
                 category: category,
                 price: price,
-                oldPrice: null,
+                oldPrice: oldPrice,
                 quantity: quantity || 0,
-                status: 'in_stock',
+                status: status,
                 description: description || 'Описание товара',
-                image: 'https://via.placeholder.com/300x200/ecf0f1/7f8c8d?text=Нет+изображения'
+                image: imageUrl || 'https://via.placeholder.com/300x200/ecf0f1/7f8c8d?text=Нет+изображения'
             };
 
             products.push(newProduct);
@@ -2299,12 +2628,41 @@
                     <input type="number" class="form-control" id="editProductPrice" value="${product.price}">
                 </div>
                 <div class="form-group">
+                    <label>Старая цена:</label>
+                    <input type="number" class="form-control" id="editProductOldPrice" value="${product.oldPrice || ''}">
+                </div>
+                <div class="form-group">
                     <label>Количество:</label>
                     <input type="number" class="form-control" id="editProductQuantity" value="${product.quantity}">
                 </div>
                 <div class="form-group">
+                    <label>Статус:</label>
+                    <select class="form-control" id="editProductStatus">
+                        <option value="in_stock" ${product.status === 'in_stock' ? 'selected' : ''}>В наличии</option>
+                        <option value="out_of_stock" ${product.status === 'out_of_stock' ? 'selected' : ''}>Нет в наличии</option>
+                        <option value="pre_order" ${product.status === 'pre_order' ? 'selected' : ''}>Под заказ</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>Описание:</label>
                     <textarea class="form-control" id="editProductDescription" rows="3">${product.description}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Изображение товара:</label>
+                    <div class="file-upload" onclick="document.getElementById('editProductImageUpload').click()">
+                        <i class="fas fa-image"></i>
+                        <p>Нажмите для загрузки нового изображения</p>
+                        <input type="file" id="editProductImageUpload" accept="image/*" style="display: none;" 
+                               onchange="handleEditProductImageUpload(this.files[0])">
+                    </div>
+                    <div class="background-preview ${product.image ? 'has-image' : ''}" 
+                         id="editProductPreview" style="${product.image ? `background-image: url('${product.image}')` : ''}">
+                        ${!product.image ? 'Предпросмотр' : ''}
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label>Или введите ссылку на изображение:</label>
+                        <input type="text" class="form-control" id="editProductImageUrl" value="${product.image}" placeholder="https://example.com/image.jpg">
+                    </div>
                 </div>
                 <div class="panel-actions">
                     <button class="btn btn-success" onclick="saveEditedProduct(${index})">Сохранить изменения</button>
@@ -2313,12 +2671,29 @@
             `;
         }
 
+        function handleEditProductImageUpload(file) {
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('editProductPreview');
+                preview.style.backgroundImage = `url('${e.target.result}')`;
+                preview.classList.add('has-image');
+                preview.innerHTML = '';
+                document.getElementById('editProductImageUrl').value = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
         function saveEditedProduct(index) {
             const name = document.getElementById('editProductName').value;
             const category = document.getElementById('editProductCategory').value;
             const price = parseInt(document.getElementById('editProductPrice').value);
+            const oldPrice = document.getElementById('editProductOldPrice').value ? parseInt(document.getElementById('editProductOldPrice').value) : null;
             const quantity = parseInt(document.getElementById('editProductQuantity').value);
+            const status = document.getElementById('editProductStatus').value;
             const description = document.getElementById('editProductDescription').value;
+            const imageUrl = document.getElementById('editProductImageUrl').value;
 
             if (!name || !category || !price) {
                 showNotification('❌ Заполните обязательные поля');
@@ -2330,8 +2705,11 @@
                 name: name,
                 category: category,
                 price: price,
+                oldPrice: oldPrice,
                 quantity: quantity,
-                description: description
+                status: status,
+                description: description,
+                image: imageUrl
             };
 
             localStorage.setItem('products', JSON.stringify(products));
@@ -2710,7 +3088,38 @@
         }
 
         function openProfile() {
-            document.getElementById('profileModal').style.display = 'block';
+            if (!currentUser) {
+                showNotification('❌ Войдите в систему для просмотра профиля');
+                showLoginModal();
+                return;
+            }
+
+            const modal = document.getElementById('profileModal');
+            const content = document.getElementById('profileContent');
+            
+            content.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div class="user-avatar" style="width: 80px; height: 80px; font-size: 2rem; margin: 0 auto 15px;">${currentUser.avatar}</div>
+                    <h3>${currentUser.name}</h3>
+                    <p style="color: var(--gray);">${currentUser.type === 'admin' ? 'Администратор магазина' : 'Покупатель'}</p>
+                </div>
+                <div class="form-group">
+                    <label>Тип пользователя:</label>
+                    <input type="text" class="form-control" value="${currentUser.type === 'admin' ? 'Администратор' : 'Покупатель'}" readonly>
+                </div>
+                ${currentUser.type === 'admin' ? `
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" class="form-control" value="admin@myshop.ru" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Телефон:</label>
+                    <input type="tel" class="form-control" value="+7 (923) 753-36-06" readonly>
+                </div>
+                ` : ''}
+            `;
+            
+            modal.style.display = 'block';
         }
 
         function closeProfile() {
@@ -2737,6 +3146,7 @@
                 </div>
                 <div style="margin-bottom: 15px;">
                     <strong>Цена:</strong> <span style="font-size: 1.5rem; color: var(--primary); font-weight: bold;">${product.price} ₽</span>
+                    ${product.oldPrice ? `<br><span style="color: var(--gray); text-decoration: line-through;">${product.oldPrice} ₽</span>` : ''}
                 </div>
                 <div style="margin-bottom: 15px;">
                     <strong>Наличие:</strong> ${product.quantity} шт.
@@ -2745,8 +3155,8 @@
                     <strong>Описание:</strong>
                     <p style="margin-top: 10px; line-height: 1.6;">${product.description}</p>
                 </div>
-                <button class="btn btn-primary" onclick="addToCart(${product.id}); closeProductModal();" style="width: 100%;">
-                    <i class="fas fa-shopping-cart"></i> Добавить в корзину
+                <button class="btn btn-primary" onclick="addToCart(${product.id}); closeProductModal();" style="width: 100%;" ${product.status !== 'in_stock' ? 'disabled' : ''}>
+                    <i class="fas fa-shopping-cart"></i> ${product.status === 'in_stock' ? 'Добавить в корзину' : 'Недоступно'}
                 </button>
             `;
             
@@ -2773,12 +3183,6 @@
             showNotification('💾 Все изменения сохранены!');
         }
 
-        function logout() {
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('isLoggedIn');
-            showNotification('👋 До свидания!');
-        }
-
         // ==================== ИНИЦИАЛИЗАЦИЯ ====================
         document.addEventListener('DOMContentLoaded', function() {
             // Применяем сохраненные настройки
@@ -2788,6 +3192,13 @@
                 document.body.style.background = siteSettings.solidColor;
             } else if (siteSettings.backgroundType === 'image' && siteSettings.backgroundImage) {
                 document.body.style.background = `url('${siteSettings.backgroundImage}') center/cover fixed`;
+            }
+
+            // Проверяем авторизацию
+            if (!currentUser) {
+                showLoginModal();
+            } else {
+                updateUserInterface();
             }
 
             // Загружаем данные
@@ -2820,6 +3231,17 @@
                         status: 'in_stock',
                         description: 'Набор постельного белья из 100% хлопка. Размер: 2.0 спальный.',
                         image: 'https://via.placeholder.com/300x200/f093fb/ffffff?text=Постельное'
+                    },
+                    {
+                        id: 102,
+                        name: 'Лосось свежий',
+                        category: 'Рыба и морепродукты',
+                        price: 1200,
+                        oldPrice: 1500,
+                        quantity: 8,
+                        status: 'in_stock',
+                        description: 'Свежий лосось, охлажденный. Вес: 1 кг.',
+                        image: 'https://via.placeholder.com/300x200/4facfe/ffffff?text=Лосось'
                     }
                 ];
 
