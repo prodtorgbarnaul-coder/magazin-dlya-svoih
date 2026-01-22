@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Магазин для своих</title>
+    <title>Каталог товаров | Магазин для своих</title>
     <link rel="stylesheet" href="styles.css">
     <script defer src="script.js"></script>
 </head>
@@ -21,7 +21,7 @@
         </div>
         <div class="header-main">
             <div class="container">
-                <a href="#" class="logo">ДЛЯ СВОИХ<span>.</span></a>
+                <a href="/" class="logo">ДЛЯ СВОИХ<span>.</span></a>
                 
                 <div class="search-bar">
                     <input type="text" id="searchInput" placeholder="Поиск товаров...">
@@ -58,53 +58,37 @@
         </div>
     </header>
 
-    <!-- HERO SECTION -->
-    <section class="hero">
-        <div class="container">
-            <h1>Магазин для своих</h1>
-            <p>Эксклюзивные товары и специальные предложения для нашего круга</p>
-        </div>
-    </section>
-
-    <!-- CATEGORIES SECTION -->
-    <section class="categories-section">
-        <div class="container">
-            <h2 class="section-title">КАТЕГОРИИ ТОВАРОВ</h2>
-            <div class="categories-grid" id="categoriesGrid">
-                <!-- Categories will be loaded dynamically -->
-            </div>
-        </div>
-    </section>
-
-    <!-- PRODUCTS SECTION -->
-    <section class="products-section" id="productsSection">
-        <div class="container">
-            <div class="products-header">
-                <h2 class="section-title" style="text-align: left; margin: 0;">ПОПУЛЯРНЫЕ ТОВАРЫ</h2>
-                <div class="filters">
-                    <select class="filter-select" id="categoryFilter" onchange="filterProducts()">
-                        <option value="">Все категории</option>
-                    </select>
-                    <select class="filter-select" id="priceFilter" onchange="filterProducts()">
-                        <option value="">Любая цена</option>
-                        <option value="0-500">До 500 руб.</option>
-                        <option value="500-1000">500-1000 руб.</option>
-                        <option value="1000-5000">1000-5000 руб.</option>
-                        <option value="5000-999999">От 5000 руб.</option>
-                    </select>
-                    <select class="filter-select" id="sortBy" onchange="sortProducts()">
-                        <option value="name">Сортировка</option>
-                        <option value="price_asc">Цена (по возрастанию)</option>
-                        <option value="price_desc">Цена (по убыванию)</option>
-                        <option value="name">По названию</option>
-                    </select>
+    <!-- MAIN CONTENT -->
+    <main>
+        <section class="products-section" id="productsSection">
+            <div class="container">
+                <div class="products-header">
+                    <h2 class="section-title" style="text-align: left; margin: 0;">ВСЕ ТОВАРЫ</h2>
+                    <div class="filters">
+                        <select class="filter-select" id="categoryFilter" onchange="filterProducts()">
+                            <option value="">Все категории</option>
+                        </select>
+                        <select class="filter-select" id="priceFilter" onchange="filterProducts()">
+                            <option value="">Любая цена</option>
+                            <option value="0-500">До 500 руб.</option>
+                            <option value="500-1000">500-1000 руб.</option>
+                            <option value="1000-5000">1000-5000 руб.</option>
+                            <option value="5000-999999">От 5000 руб.</option>
+                        </select>
+                        <select class="filter-select" id="sortBy" onchange="sortProducts()">
+                            <option value="name">Сортировка</option>
+                            <option value="price_asc">Цена (по возрастанию)</option>
+                            <option value="price_desc">Цена (по убыванию)</option>
+                            <option value="name">По названию</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="products-grid" id="productsGrid">
+                    <!-- Here the products will be rendered dynamically -->
                 </div>
             </div>
-            <div class="products-grid" id="productsGrid">
-                <!-- Products will be loaded dynamically -->
-            </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
     <!-- FOOTER SECTION -->
     <footer>
@@ -141,7 +125,7 @@
                 <span class="close" onclick="closeCart()">×</span>
             </div>
             <div id="cartItems">
-                <!-- Cart items here -->
+                <!-- Items of shopping cart -->
             </div>
             <div class="cart-total">
                 Итого: <span id="cartTotal">0</span> ₽
@@ -153,7 +137,7 @@
         </div>
     </div>
 
-    <!-- PROFILE MODAL -->
+    <!-- MODAL WINDOW FOR USER'S PROFILE -->
     <div id="profileModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -178,7 +162,7 @@
         </div>
     </div>
 
-    <!-- PRODUCT DETAILS MODAL -->
+    <!-- MODAL WINDOW FOR SINGLE PRODUCT VIEW -->
     <div id="productModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -186,51 +170,12 @@
                 <span class="close" onclick="closeProductModal()">×</span>
             </div>
             <div id="productModalContent">
-                <!-- Product details go here -->
+                <!-- Details about specific product -->
             </div>
         </div>
     </div>
 
-    <!-- NOTIFICATION MESSAGE -->
-    <div class="notification" id="notificationMessage"></div>
-
-    <!-- IMPORT INFORMATION -->
-    <div class="import-info" id="importInfo"></div>
-
-    <!-- STATISTICS PANEL -->
-    <div class="import-stats" id="importStats"></div>
-
-    <!-- CONSTRUCTOR TOOLBAR -->
-    <div class="constructor-toolbar" id="constructorToolbar">
-        <div class="constructor-toggle" onclick="toggleConstructor()">
-            <i class="fas fa-palette"></i>
-        </div>
-        <div id="editButtons" style="display: none;">
-            <button class="edit-btn" onclick="editBackground()">Фон сайта</button>
-            <button class="edit-btn" onclick="editHeader()">Шапка</button>
-            <button class="edit-btn" onclick="editCategories()">Категории</button>
-            <button class="edit-btn" onclick="editProducts()">Товары</button>
-            <button class="edit-btn" onclick="editOrders()">Заказы</button>
-            <button class="edit-btn" onclick="editGiveaway()">Розыгрыш</button>
-            <button class="edit-btn" onclick="saveDesign()">Сохранить</button>
-            <button class="edit-btn" onclick="logout()">Выйти</button>
-        </div>
-    </div>
-
-    <!-- EDIT OVERLAY -->
-    <div class="edit-overlay" id="editOverlay"></div>
-
-    <!-- EDIT PANEL -->
-    <div class="edit-panel" id="productsPanel">
-        <div class="edit-panel-content" id="productsPanelContent">
-            <!-- Content will be loaded dynamically -->
-        </div>
-        <div class="panel-actions">
-            <button class="btn btn-danger" onclick="closePanel()">Закрыть</button>
-        </div>
-    </div>
-
-    <!-- OTHER MODALS AND COMPONENTS -->
-    <!-- Сюда можно поместить остальные элементы интерфейса -->
+    <!-- OTHER INTERFACE ELEMENTS -->
+    <!-- These elements can include modals, notifications, etc. -->
 </body>
 </html>
