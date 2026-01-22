@@ -21,7 +21,7 @@
         </div>
         <div class="header-main">
             <div class="container">
-                <a href="#" class="logo">ДЛЯ СВОИХ<span>.</span></a>
+                <a href="/" class="logo">ДЛЯ СВОИХ<span>.</span></a>
                 
                 <div class="search-bar">
                     <input type="text" id="searchInput" placeholder="Поиск товаров...">
@@ -29,16 +29,16 @@
                 </div>
                 
                 <div class="header-actions">
-                    <a href="#" class="header-action" onclick="openProfile(); return false;">
+                    <a href="#" class="header-action" data-action="profile" onclick="openProfile(); return false;">
                         <i class="far fa-user"></i>
                         <span>Профиль</span>
                     </a>
-                    <a href="#" class="header-action" onclick="openNotifications(); return false;" style="position: relative;">
+                    <a href="#" class="header-action" data-action="notifications" onclick="openNotifications(); return false;" style="position: relative;">
                         <i class="far fa-bell"></i>
                         <span>Уведомления</span>
                         <div class="notification-count" id="notificationCount">0</div>
                     </a>
-                    <a href="#" class="header-action" style="position: relative;" onclick="openCart(); return false;">
+                    <a href="#" class="header-action" data-action="cart" style="position: relative;" onclick="openCart(); return false;">
                         <i class="fas fa-shopping-cart"></i>
                         <span>Корзина</span>
                         <div class="cart-count" id="cartCount">0</div>
@@ -58,53 +58,63 @@
         </div>
     </header>
 
-    <!-- HERO SECTION -->
-    <section class="hero">
-        <div class="container">
-            <h1>Магазин для своих</h1>
-            <p>Эксклюзивные товары и специальные предложения для нашего круга</p>
+    <!-- MODAL WINDOWS -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <h2>Профиль</h2>
+            <p>Здесь можно добавить дополнительную информацию о пользователе.</p>
+            <button onclick="closeProfile()">Закрыть</button>
         </div>
-    </section>
+    </div>
 
-    <!-- CATEGORIES SECTION -->
-    <section class="categories-section">
-        <div class="container">
-            <h2 class="section-title">КАТЕГОРИИ ТОВАРОВ</h2>
-            <div class="categories-grid" id="categoriesGrid">
-                <!-- Categories will be loaded dynamically -->
-            </div>
+    <div id="notificationsModal" class="modal">
+        <div class="modal-content">
+            <h2>Уведомления</h2>
+            <p>Здесь можно выводить уведомления для пользователя.</p>
+            <button onclick="closeNotifications()">Закрыть</button>
         </div>
-    </section>
+    </div>
 
-    <!-- PRODUCTS SECTION -->
-    <section class="products-section" id="productsSection">
-        <div class="container">
-            <div class="products-header">
-                <h2 class="section-title" style="text-align: left; margin: 0;">ПОПУЛЯРНЫЕ ТОВАРЫ</h2>
-                <div class="filters">
-                    <select class="filter-select" id="categoryFilter" onchange="filterProducts()">
-                        <option value="">Все категории</option>
-                    </select>
-                    <select class="filter-select" id="priceFilter" onchange="filterProducts()">
-                        <option value="">Любая цена</option>
-                        <option value="0-500">До 500 руб.</option>
-                        <option value="500-1000">500-1000 руб.</option>
-                        <option value="1000-5000">1000-5000 руб.</option>
-                        <option value="5000-999999">От 5000 руб.</option>
-                    </select>
-                    <select class="filter-select" id="sortBy" onchange="sortProducts()">
-                        <option value="name">Сортировка</option>
-                        <option value="price_asc">Цена (по возрастанию)</option>
-                        <option value="price_desc">Цена (по убыванию)</option>
-                        <option value="name">По названию</option>
-                    </select>
+    <div id="cartModal" class="modal">
+        <div class="modal-content">
+            <h2>Корзина</h2>
+            <div id="cartItems"></div>
+            <p id="cartTotal"></p>
+            <button onclick="closeCart()">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        <section class="products-section" id="productsSection">
+            <div class="container">
+                <div class="products-header">
+                    <h2 class="section-title" style="text-align: left; margin: 0;">ВСЕ ТОВАРЫ</h2>
+                    <div class="filters">
+                        <select class="filter-select" id="categoryFilter" onchange="filterProducts()">
+                            <option value="">Все категории</option>
+                        </select>
+                        <select class="filter-select" id="priceFilter" onchange="filterProducts()">
+                            <option value="">Любая цена</option>
+                            <option value="0-500">До 500 руб.</option>
+                            <option value="500-1000">500-1000 руб.</option>
+                            <option value="1000-5000">1000-5000 руб.</option>
+                            <option value="5000-999999">От 5000 руб.</option>
+                        </select>
+                        <select class="filter-select" id="sortBy" onchange="sortProducts()">
+                            <option value="name">Сортировка</option>
+                            <option value="price_asc">Цена (по возрастанию)</option>
+                            <option value="price_desc">Цена (по убыванию)</option>
+                            <option value="name">По названию</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="products-grid" id="productsGrid">
+                    <!-- Here the products will be rendered dynamically -->
                 </div>
             </div>
-            <div class="products-grid" id="productsGrid">
-                <!-- Products will be loaded dynamically -->
-            </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
     <!-- FOOTER SECTION -->
     <footer>
@@ -132,105 +142,5 @@
             </div>
         </div>
     </footer>
-
-    <!-- MODAL WINDOW FOR CART -->
-    <div id="cartModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">🛒 Корзина</h3>
-                <span class="close" onclick="closeCart()">×</span>
-            </div>
-            <div id="cartItems">
-                <!-- Cart items here -->
-            </div>
-            <div class="cart-total">
-                Итого: <span id="cartTotal">0</span> ₽
-            </div>
-            <div style="margin-top: 20px; display: flex; gap: 10px;">
-                <button class="btn btn-primary" onclick="checkout()" style="flex: 1;">Оформить заказ</button>
-                <button class="btn btn-outline" onclick="closeCart()">Продолжить покупки</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- PROFILE MODAL -->
-    <div id="profileModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">👤 Профиль</h3>
-                <span class="close" onclick="closeProfile()">×</span>
-            </div>
-            <div id="profileContent">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <div class="user-avatar" style="width: 80px; height: 80px; font-size: 2rem; margin: 0 auto 15px;">A</div>
-                    <h3>Администратор</h3>
-                    <p style="color: var(--gray);">Администратор магазина</p>
-                </div>
-                <div class="form-group">
-                    <label>Email:</label>
-                    <input type="email" class="form-control" value="admin@myshop.ru" readonly>
-                </div>
-                <div class="form-group">
-                    <label>Телефон:</label>
-                    <input type="tel" class="form-control" value="+7 (923) 753-36-06" readonly>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PRODUCT DETAILS MODAL -->
-    <div id="productModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title" id="productModalTitle">Товар</h3>
-                <span class="close" onclick="closeProductModal()">×</span>
-            </div>
-            <div id="productModalContent">
-                <!-- Product details go here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- NOTIFICATION MESSAGE -->
-    <div class="notification" id="notificationMessage"></div>
-
-    <!-- IMPORT INFORMATION -->
-    <div class="import-info" id="importInfo"></div>
-
-    <!-- STATISTICS PANEL -->
-    <div class="import-stats" id="importStats"></div>
-
-    <!-- CONSTRUCTOR TOOLBAR -->
-    <div class="constructor-toolbar" id="constructorToolbar">
-        <div class="constructor-toggle" onclick="toggleConstructor()">
-            <i class="fas fa-palette"></i>
-        </div>
-        <div id="editButtons" style="display: none;">
-            <button class="edit-btn" onclick="editBackground()">Фон сайта</button>
-            <button class="edit-btn" onclick="editHeader()">Шапка</button>
-            <button class="edit-btn" onclick="editCategories()">Категории</button>
-            <button class="edit-btn" onclick="editProducts()">Товары</button>
-            <button class="edit-btn" onclick="editOrders()">Заказы</button>
-            <button class="edit-btn" onclick="editGiveaway()">Розыгрыш</button>
-            <button class="edit-btn" onclick="saveDesign()">Сохранить</button>
-            <button class="edit-btn" onclick="logout()">Выйти</button>
-        </div>
-    </div>
-
-    <!-- EDIT OVERLAY -->
-    <div class="edit-overlay" id="editOverlay"></div>
-
-    <!-- EDIT PANEL -->
-    <div class="edit-panel" id="productsPanel">
-        <div class="edit-panel-content" id="productsPanelContent">
-            <!-- Content will be loaded dynamically -->
-        </div>
-        <div class="panel-actions">
-            <button class="btn btn-danger" onclick="closePanel()">Закрыть</button>
-        </div>
-    </div>
-
-    <!-- OTHER MODALS AND COMPONENTS -->
-    <!-- Сюда можно поместить остальные элементы интерфейса -->
 </body>
 </html>
