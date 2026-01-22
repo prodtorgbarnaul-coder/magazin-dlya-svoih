@@ -104,6 +104,5 @@ function loadProducts() {
     ];
 
     // Now you could render these products using a loop or similar mechanism
-    // Here we're just showing how it might work
     console.log('Loaded products:', products);
 }
